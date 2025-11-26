@@ -1,5 +1,6 @@
 import click
 from awsafe.resources.ec2 import EC2Resource
+from awsafe.rules.ec2_rules import check_public_ip
 
 @click.group()
 def cli():
@@ -23,16 +24,23 @@ def ec2_scan(region):
         click.echo(f"Error calling AWS EC2: {e}", err=True)
         raise SystemExit(1)
     
-    click.echo(f"Found {len(instances)} instances.\n")
+    click.echo(f"Found {len(instances)} instance/s.\n")
 
     for i in instances:
         iid = i.get("InstanceId")
         itype = i.get("InstanceType")
         state = i.get("State", {}).get("Name")
         public_ip = i.get("PublicIpAddress", "-")
-        click.echo(f"- {iid}  |  {itype}  |  {state}  |  public_ip: {public_ip}")    
-    
+        click.echo(f"- {iid}  |  {itype}  |  {state}  |  public_ip: {public_ip}")
 
+    for i in instances:
+        iid = i.get("InstanceId")
+        click.echo(f"Instance: {iid}")
+        rule_result = check_public_ip(i)
+
+        click.echo(f"  Rule: {rule_result['rule_id']}")
+        click.echo(f"  Status: {rule_result['status']}")
+        click.echo(f"  Message: {rule_result['message']}\n")     
 
 
 
