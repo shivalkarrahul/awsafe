@@ -1,6 +1,15 @@
 import click
 from awsafe.resources.ec2 import EC2Resource
-from awsafe.rules.ec2_rules import check_public_ip
+from awsafe.rules.ec2_rules import run_all_rules
+
+def get_instance_name(instance):
+    tags = instance.get("Tags", [])
+    for tag in tags:
+        if tag["Key"] == "Name":
+            name = tag["Value"].strip()
+            if name:
+                return name
+    return "N/A"
 
 @click.group()
 def cli():
@@ -28,20 +37,16 @@ def ec2_scan(region):
 
     for i in instances:
         iid = i.get("InstanceId")
-        itype = i.get("InstanceType")
-        state = i.get("State", {}).get("Name")
-        public_ip = i.get("PublicIpAddress", "-")
-        click.echo(f"- {iid}  |  {itype}  |  {state}  |  public_ip: {public_ip}")
-
-    for i in instances:
-        iid = i.get("InstanceId")
-        click.echo(f"Instance: {iid}")
-        rule_result = check_public_ip(i)
-
-        click.echo(f"  Rule: {rule_result['rule_id']}")
-        click.echo(f"  Status: {rule_result['status']}")
-        click.echo(f"  Message: {rule_result['message']}\n")     
-
+        iname = get_instance_name(i)
+        results = run_all_rules(i)
+        click.echo(f"\nInstance: {iid} (Name: {iname})")
+        for rule_results in results:
+            click.echo(
+                f"  Rule: {rule_results['rule_id']:<20} | "
+                f"Status: {rule_results['status']:<5} | "
+                f"Message: {rule_results['message']}"
+            )
+        click.echo("")  #
 
 
 @cli.group()
