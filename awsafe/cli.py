@@ -35,6 +35,10 @@ def ec2_scan(region):
     
     click.echo(f"Found {len(instances)} instance/s.\n")
 
+    total_rules = 0
+    passed_rules = 0
+    failed_rules = 0
+
     for i in instances:
         iid = i.get("InstanceId")
         iname = get_instance_name(i)
@@ -42,19 +46,27 @@ def ec2_scan(region):
         click.echo(f"\nInstance: {iid} (Name: {iname})")
         for rule_results in results:
             status = rule_results["status"]
+            total_rules += 1
             if status == "PASS":
                 colored_status = click.style(status, fg="green")
+                passed_rules += 1
             elif status == "FAIL":
                 colored_status = click.style(status, fg="red")
-            else:
-                colored_status = click.style(status, fg="yellow")
-
+                failed_rules += 1
             click.echo(
                 f"  Rule: {rule_results['rule_id']:<20} | "
                 f"Status: {colored_status:<5} | "
                 f"Message: {rule_results['message']}"
             )
         click.echo("")  #
+    click.echo("\n================ SUMMARY ================")
+    click.echo(f"Total Instances: {len(instances)}")
+    click.echo(f"Total Rules Run: {total_rules}")
+    click.echo(f"Passed: {passed_rules}")
+    click.echo(f"Failed: {failed_rules}")
+    click.echo("==========================================")
+    click.echo("")  #
+
 
 
 @cli.group()
