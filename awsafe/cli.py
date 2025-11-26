@@ -41,9 +41,17 @@ def ec2_scan(region):
         results = run_all_rules(i)
         click.echo(f"\nInstance: {iid} (Name: {iname})")
         for rule_results in results:
+            status = rule_results["status"]
+            if status == "PASS":
+                colored_status = click.style(status, fg="green")
+            elif status == "FAIL":
+                colored_status = click.style(status, fg="red")
+            else:
+                colored_status = click.style(status, fg="yellow")
+
             click.echo(
                 f"  Rule: {rule_results['rule_id']:<20} | "
-                f"Status: {rule_results['status']:<5} | "
+                f"Status: {colored_status:<5} | "
                 f"Message: {rule_results['message']}"
             )
         click.echo("")  #
