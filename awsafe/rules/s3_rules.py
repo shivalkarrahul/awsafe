@@ -56,9 +56,26 @@ def check_encryption(bucket, s3_resource):
         }
     
 
+def check_versioning(bucket, s3_resource):
+    versioning = s3_resource.get_bucket_versioning(bucket["Name"])
+    if versioning and versioning.get("Status") == "Enabled":
+        return{
+            "rule_id": "S3_VERSIONING",
+            "status": "PASS",
+            "message": "Versioning is enabled"
+        }
+    else:
+        return {
+            "rule_id": "S3_VERSIONING",
+            "status": "FAIL",
+            "message": "Bucket does NOT have versioning enabled"
+        }
+        
+
 RULES = {
     "S3_PUBLIC_ACCESS": check_public_access,
-    "S3_ENCRYPTION": check_encryption
+    "S3_ENCRYPTION": check_encryption,
+    "S3_VERSIONING": check_versioning
 }
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "../config/rules_config.json")

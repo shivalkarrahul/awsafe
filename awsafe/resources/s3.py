@@ -21,3 +21,7 @@ class S3Resource:
                 return None
             else:
                 raise e    
+            
+    def get_bucket_versioning(self, bucket_name):
+        response = self.client.get_bucket_versioning(Bucket=bucket_name)
+        return response  # may return {}
